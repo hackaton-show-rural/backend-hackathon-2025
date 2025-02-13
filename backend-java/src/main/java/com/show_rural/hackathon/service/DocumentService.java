@@ -1,5 +1,6 @@
 package com.show_rural.hackathon.service;
 
+import com.show_rural.hackathon.controller.dto.DocumentFilters;
 import com.show_rural.hackathon.controller.dto.PageParams;
 import com.show_rural.hackathon.domain.Document;
 import com.show_rural.hackathon.repository.DocumentRepository;
@@ -46,8 +47,8 @@ public class DocumentService {
         documentRepository.save(document);
     }
 
-    public Page<Document> list(PageParams params) {
+    public Page<Document> list(PageParams params, DocumentFilters filters) {
         var page = PageRequest.of(params.getOffset(), params.getLimit());
-        return documentRepository.list(page);
+        return documentRepository.list(page, filters);
     }
 }

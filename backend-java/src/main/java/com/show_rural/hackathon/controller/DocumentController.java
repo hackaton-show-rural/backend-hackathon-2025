@@ -1,5 +1,6 @@
 package com.show_rural.hackathon.controller;
 
+import com.show_rural.hackathon.controller.dto.DocumentFilters;
 import com.show_rural.hackathon.controller.dto.PageParams;
 import com.show_rural.hackathon.domain.Document;
 import com.show_rural.hackathon.service.DocumentService;
@@ -19,8 +20,9 @@ public class DocumentController {
     private final DocumentService documentService;
 
     @GetMapping
-    public ResponseEntity<Page<Document>> list(@ModelAttribute PageParams params) {
-        return ResponseEntity.ok(documentService.list(params));
+    public ResponseEntity<Page<Document>> list(@ModelAttribute PageParams params,
+                                               @ModelAttribute DocumentFilters filters) {
+        return ResponseEntity.ok(documentService.list(params, filters));
     }
 
     @PostMapping("/upload")
