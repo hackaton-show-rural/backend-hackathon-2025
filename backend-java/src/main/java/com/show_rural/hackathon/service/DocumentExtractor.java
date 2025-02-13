@@ -3,6 +3,7 @@ package com.show_rural.hackathon.service;
 import com.show_rural.hackathon.domain.Document;
 import com.show_rural.hackathon.domain.DocumentCondition;
 import com.show_rural.hackathon.domain.DocumentIdentifier;
+import com.show_rural.hackathon.util.DocGenerator;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,7 @@ public class DocumentExtractor {
     public Document extract(String content) {
         content = content.replaceAll("EM BRANCO", "");
         Document document = new Document();
+        document.setCnpj(DocGenerator.generateDoc());
 
         Pattern protocolPattern = Pattern.compile("Número do Protocolo\\s*\\n+Número do Documento\\s*\\n+(\\d{2}\\.\\d{3}\\.\\d{3}-\\d)");
         Matcher protocolMatcher = protocolPattern.matcher(content);

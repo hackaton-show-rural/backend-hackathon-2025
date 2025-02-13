@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
+
 
 @RestController
 @RequestMapping("documents")
@@ -24,7 +24,7 @@ public class DocumentController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<Document> upload(@RequestParam("file") MultipartFile file) {
-        return ResponseEntity.ok(documentService.upload(file));
+    public ResponseEntity<List<Document>> upload(@RequestParam("files") List<MultipartFile> files) {
+        return ResponseEntity.ok(documentService.upload(files));
     }
 }

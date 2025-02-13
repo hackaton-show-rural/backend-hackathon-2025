@@ -16,6 +16,7 @@ public class Document {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String cnpj;
     private String protocol;
     private String number;
     private LocalDate limitDate;
