@@ -28,10 +28,10 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
     Page<Document> list(Pageable page, @Param("filters") DocumentFilters filters);
 
     @Query("""
-        SELECT d FROM Document d
-        WHERE d.limitDate <= CURRENT_DATE + :daysToNotify
-        AND d.limitDate >= CURRENT_DATE
-        ORDER BY d.limitDate ASC
-        """)
-    List<Document> findNextExpirations(Integer daysToNotify);
+            SELECT d FROM Document d
+            WHERE d.limitDate <= FUNCTION('DATE_ADD', CURRENT_DATE, :daysToNotify, 'DAY')
+            AND d.limitDate >= CURRENT_DATE
+            ORDER BY d.limitDate ASC
+            """)
+    List<Document> findNextExpirations(@Param("daysToNotify") Integer daysToNotify);
 }
