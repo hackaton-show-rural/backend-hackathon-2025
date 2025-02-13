@@ -8,7 +8,6 @@ import java.util.List;
 
 
 @Data
-@Table(indexes = {@Index(columnList = "documentId")})
 @Entity
 public class Document {
 
@@ -28,6 +27,6 @@ public class Document {
     @Column(columnDefinition = "TEXT")
     private List<String> conditions;
 
-    @Column(nullable = false)
-    private String documentId;
+    @Column(columnDefinition = "TEXT")
+    private String documentUrl;
 }

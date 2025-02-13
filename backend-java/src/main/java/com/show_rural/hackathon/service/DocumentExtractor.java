@@ -1,7 +1,6 @@
 package com.show_rural.hackathon.service;
 
 import com.show_rural.hackathon.domain.Document;
-import com.show_rural.hackathon.domain.DocumentCondition;
 import com.show_rural.hackathon.domain.DocumentIdentifier;
 import com.show_rural.hackathon.util.DocGenerator;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -9,6 +8,8 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -42,7 +43,25 @@ public class DocumentExtractor {
         }
     }
 
-    public Document extract(String content) {
+    public Document processFile(File file) {
+        try {
+            if (!file.exists()) {
+                throw new IllegalArgumentException("Arquivo está vazio");
+            }
+
+            PDDocument pdDocument = PDDocument.load(new FileInputStream(file));
+            PDFTextStripper pdfStripper = new PDFTextStripper();
+            String content = pdfStripper.getText(pdDocument);
+            pdDocument.close();
+
+            return extract(content);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao processar arquivo PDF: " + e.getMessage(), e);
+        }
+    }
+
+    private Document extract(String content) {
         content = content.replaceAll("EM BRANCO", "");
         Document document = new Document();
         document.setCnpj(DocGenerator.generateDoc());

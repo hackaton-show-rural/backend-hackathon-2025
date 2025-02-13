@@ -3,19 +3,13 @@ package com.show_rural.hackathon.service;
 import com.show_rural.hackathon.controller.dto.PageParams;
 import com.show_rural.hackathon.domain.Document;
 import com.show_rural.hackathon.repository.DocumentRepository;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.sql.Array;
+import java.io.File;
 import java.util.*;
 
 @Service
@@ -37,11 +31,19 @@ public class DocumentService {
     }
 
     public Document upload(MultipartFile file) {
-        String documentId = bucketService.upload(file);
+        String url = bucketService.upload(file);
         Document document = documentExtractor.processFile(file);
 
-        document.setDocumentId(documentId);
+        document.setDocumentUrl(url);
         return documentRepository.save(document);
+    }
+
+    public void upload(File file) {
+        String url = bucketService.upload(file);
+        Document document = documentExtractor.processFile(file);
+
+        document.setDocumentUrl(url);
+        documentRepository.save(document);
     }
 
     public Page<Document> list(PageParams params) {

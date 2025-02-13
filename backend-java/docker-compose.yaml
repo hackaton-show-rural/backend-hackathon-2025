@@ -7,6 +7,7 @@ services:
       dockerfile: Dockerfile
     environment:
       - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      - EMAIL_PASSWORD=kxcb udjv nxkg mpiu
     ports:
       - "8080:8080"
       - "5005:5005"
