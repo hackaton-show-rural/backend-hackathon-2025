@@ -1,62 +1,38 @@
 package com.show_rural.hackathon.service;
 
+import com.show_rural.hackathon.controller.dto.PageParams;
+import com.show_rural.hackathon.domain.Document;
+import com.show_rural.hackathon.repository.DocumentRepository;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class DocumentService {
+    private final BucketService bucketService;
+    private final DocumentExtractor documentExtractor;
+    private final DocumentRepository documentRepository;
 
-    @Value("${minio.url}")
-    private String minioUrl;
+    public Document upload(MultipartFile file) {
+        String documentId = bucketService.upload(file);
+        Document document = documentExtractor.processFile(file);
 
-    @Value("${minio.access-key}")
-    private String accessKey;
+        document.setDocumentId(documentId);
+        return documentRepository.save(document);
+    }
 
-    @Value("${minio.secret-key}")
-    private String secretKey;
-
-    @Value("${minio.bucket-name}")
-    private String bucketName;
-
-    public List<String> upload(List<MultipartFile> files) {
-        try {
-            MinioClient minioClient = MinioClient.builder()
-                    .endpoint(minioUrl)
-                    .credentials(accessKey, secretKey)
-                    .build();
-
-            List<String> documentIds = new ArrayList<>();
-
-            for (MultipartFile file : files) {
-                String documentId = UUID.randomUUID().toString();
-
-                String originalFilename = file.getOriginalFilename();
-                String extension = originalFilename != null ?
-                        originalFilename.substring(originalFilename.lastIndexOf(".")) : "";
-                String objectName = documentId + extension;
-
-                minioClient.putObject(PutObjectArgs.builder()
-                        .bucket(bucketName)
-                        .object(objectName)
-                        .stream(file.getInputStream(), file.getSize(), -1)
-                        .contentType(file.getContentType())
-                        .build());
-
-                documentIds.add(objectName);
-            }
-
-            return documentIds;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to upload documents", e);
-        }
+    public Page<Document> list(PageParams params) {
+        var page = PageRequest.of(params.getOffset(), params.getLimit());
+        return documentRepository.list(page);
     }
 }
