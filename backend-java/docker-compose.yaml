@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/documentdb
+      - SPRING_DATASOURCE_USERNAME=document_user
+      - SPRING_DATASOURCE_PASSWORD=document_pass
+      - MINIO_URL=http://minio:9000
+      - MINIO_ACCESS_KEY=minio
+      - MINIO_SECRET_KEY=minio123
+      - MINIO_BUCKET_NAME=documents
+      - PYTHON_SERVICE_URL=http://python-backend:5000
+    depends_on:
+      minio-config:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_started
+    networks:
+      - app-network
+    volumes:
+      - java-data:/app/data
+
+  python-backend:
+    build:
+      context: ../backend-python
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - MINIO_URL=http://minio:9000
+      - MINIO_ACCESS_KEY=minio
+      - MINIO_SECRET_KEY=minio123
+      - MINIO_BUCKET_NAME=documents
+      - MODEL_PATH=/app/models/llama-2-7b
+    volumes:
+      - python-data:/app/data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=docdb
+      - POSTGRES_USER=docuser
+      - POSTGRES_PASSWORD=docpass
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=minio123
+    command: server --console-address ":9001" /data
+    volumes:
+      - minio-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  minio-config:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=minio123
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 minio minio123;
+      /usr/bin/mc mb myminio/documents;
+      /usr/bin/mc anonymous set public myminio/documents;
+      exit 0;
+      "
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  minio-data:
+  java-data:
+  python-data:
