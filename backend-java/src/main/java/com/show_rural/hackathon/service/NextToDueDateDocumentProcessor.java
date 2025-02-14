@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -14,21 +15,20 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class NextToDueDateDocumentProcessor {
-
-    private final static String MESSAGE = "";
     private final DocumentRepository documentRepository;
     private final EmailService emailService;
 
     @Scheduled(initialDelay = 0, fixedDelay = 10000)
+    @Transactional
     public void checkDocumentsExpiration() {
         Integer daysToNotify = 120;
         List<Document> documents = documentRepository.findNextExpirations(daysToNotify);
 
-        if (!documents.isEmpty()) {
-            log.info("Encontrados {} documentos próximos ao vencimento", documents.size());
-        }
-
         for (var document : documents) {
+            if (document.getSentMail() != null && document.getSentMail()) {
+                continue;
+            }
+
             String subject = "Alerta de Vencimento - Documento " + document.getProtocol();
 
             String message = """
@@ -68,7 +68,7 @@ public class NextToDueDateDocumentProcessor {
                                 
                                 <p>Por favor, tome as providências necessárias para renovação do documento antes do vencimento.</p>
                                 
-                                <a href="%s" class="button">Visualizar Documento</a>
+                                <a href="%s" class="button" style="color:white">Visualizar Documento</a>
                                 
                                 <p>Se precisar de ajuda, entre em contato com nossa equipe de suporte.</p>
                                 
@@ -91,6 +91,7 @@ public class NextToDueDateDocumentProcessor {
 
             try {
                 emailService.send(subject, message);
+                document.setSentMail(true);
                 log.info("Email de alerta enviado com sucesso para documento: {}", document.getProtocol());
             } catch (Exception e) {
                 log.error("Erro ao enviar email de alerta para documento: {}", document.getProtocol(), e);

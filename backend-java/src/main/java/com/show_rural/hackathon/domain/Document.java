@@ -29,4 +29,7 @@ public class Document {
 
     @Column(columnDefinition = "TEXT")
     private String documentUrl;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private Boolean sentMail = false;
 }
