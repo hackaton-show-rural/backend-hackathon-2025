@@ -106,6 +106,15 @@ public class DocumentExtractor {
 
         document.setIdentifier(identifier);
 
+        Pattern activityPattern = Pattern.compile("(?<=Atividade\\R)([^\\n\\r]+)", Pattern.MULTILINE);
+        Matcher activityMatcher = activityPattern.matcher(content);
+
+        if (activityMatcher.find()) {
+            String activity = activityMatcher.group(1).trim();
+            document.setActivity(activity);
+        }
+
+
         List<String> conditions = new ArrayList<>();
         String conditionants = "CONDICIONANTES";
         int startIndex = content.indexOf(conditionants) + conditionants.length();

@@ -18,6 +18,7 @@ public class Document {
     private String cnpj;
     private String protocol;
     private String number;
+    private String activity;
     private LocalDate limitDate;
     private DocumentStatus status;
 
