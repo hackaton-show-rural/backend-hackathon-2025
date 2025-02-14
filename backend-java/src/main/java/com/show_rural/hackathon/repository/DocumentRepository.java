@@ -21,7 +21,8 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
                   LOWER(d.cnpj) LIKE LOWER(CONCAT('%', :#{#filters.search}, '%')) OR
                   LOWER(di.name) LIKE LOWER(CONCAT('%', :#{#filters.search}, '%')) OR
                   LOWER(d.protocol) LIKE LOWER(CONCAT('%', :#{#filters.search}, '%')) OR
-                  LOWER(d.number) LIKE LOWER(CONCAT('%', :#{#filters.search}, '%')))
+                  LOWER(d.number) LIKE LOWER(CONCAT('%', :#{#filters.search}, '%')) OR
+                  LOWER(di.city) LIKE LOWER(CONCAT('%', :#{#filters.search}, '%')))
             AND (:#{#filters.date} IS NULL OR
                  d.limitDate <= :#{#filters.date})
             ORDER BY d.limitDate ASC

@@ -1,6 +1,7 @@
 package com.show_rural.hackathon.controller;
 
 import com.show_rural.hackathon.controller.dto.DocumentFilters;
+import com.show_rural.hackathon.controller.dto.DocumentsCityQuantity;
 import com.show_rural.hackathon.controller.dto.PageParams;
 import com.show_rural.hackathon.domain.Document;
 import com.show_rural.hackathon.service.DocumentService;
@@ -18,6 +19,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DocumentController {
     private final DocumentService documentService;
+
+
+    @GetMapping("chart/pie")
+    public ResponseEntity<List<DocumentsCityQuantity>> getDocCountPerCityChart() {
+        return ResponseEntity.ok(documentService.countDocPerCity());
+    }
 
     @GetMapping
     public ResponseEntity<Page<Document>> list(@ModelAttribute PageParams params,
