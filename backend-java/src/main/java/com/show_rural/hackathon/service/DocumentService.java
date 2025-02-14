@@ -2,6 +2,7 @@ package com.show_rural.hackathon.service;
 
 import com.show_rural.hackathon.controller.dto.DocumentFilters;
 import com.show_rural.hackathon.controller.dto.DocumentsCityQuantity;
+import com.show_rural.hackathon.controller.dto.DocumentsStatusQuantity;
 import com.show_rural.hackathon.controller.dto.PageParams;
 import com.show_rural.hackathon.domain.Document;
 import com.show_rural.hackathon.repository.DocumentRepository;
@@ -69,6 +70,25 @@ public class DocumentService {
                     cityCount.setCity(entry.getKey());
                     cityCount.setQuantity(entry.getValue());
                     return cityCount;
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<DocumentsStatusQuantity> countDocPerStatus() {
+        List<Document> documents = documentRepository.findAll();
+
+        return documents.stream()
+                .collect(Collectors.groupingBy(
+                        Document::getStatus,
+                        Collectors.counting()
+                ))
+                .entrySet()
+                .stream()
+                .map(entry -> {
+                    var statusCount = new DocumentsStatusQuantity();
+                    statusCount.setStatus(entry.getKey());
+                    statusCount.setQuantity(entry.getValue());
+                    return statusCount;
                 })
                 .collect(Collectors.toList());
     }
