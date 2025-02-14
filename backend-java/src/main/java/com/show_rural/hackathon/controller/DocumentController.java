@@ -1,9 +1,6 @@
 package com.show_rural.hackathon.controller;
 
-import com.show_rural.hackathon.controller.dto.DocumentFilters;
-import com.show_rural.hackathon.controller.dto.DocumentsCityQuantity;
-import com.show_rural.hackathon.controller.dto.DocumentsStatusQuantity;
-import com.show_rural.hackathon.controller.dto.PageParams;
+import com.show_rural.hackathon.controller.dto.*;
 import com.show_rural.hackathon.domain.Document;
 import com.show_rural.hackathon.service.DocumentService;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +27,11 @@ public class DocumentController {
     @GetMapping("chart/radial")
     public ResponseEntity<List<DocumentsStatusQuantity>> getDocCountPerStatusChart() {
         return ResponseEntity.ok(documentService.countDocPerStatus());
+    }
+
+    @GetMapping("chart/area")
+    public ResponseEntity<List<DocumentMonthLimit>> getDocCountPerMonth() {
+        return ResponseEntity.ok(documentService.countDocPerMonth());
     }
 
     @GetMapping

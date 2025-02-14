@@ -1,9 +1,6 @@
 package com.show_rural.hackathon.service;
 
-import com.show_rural.hackathon.controller.dto.DocumentFilters;
-import com.show_rural.hackathon.controller.dto.DocumentsCityQuantity;
-import com.show_rural.hackathon.controller.dto.DocumentsStatusQuantity;
-import com.show_rural.hackathon.controller.dto.PageParams;
+import com.show_rural.hackathon.controller.dto.*;
 import com.show_rural.hackathon.domain.Document;
 import com.show_rural.hackathon.domain.DocumentStatus;
 import com.show_rural.hackathon.repository.DocumentRepository;
@@ -15,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -109,6 +107,26 @@ public class DocumentService {
                     statusCount.setQuantity(entry.getValue());
                     return statusCount;
                 })
+                .collect(Collectors.toList());
+    }
+
+    public List<DocumentMonthLimit> countDocPerMonth() {
+        List<Document> documents = documentRepository.findAll();
+
+        return documents.stream()
+                .collect(Collectors.groupingBy(
+                        doc -> doc.getLimitDate().getMonth(),
+                        Collectors.counting()
+                ))
+                .entrySet()
+                .stream()
+                .map(entry -> {
+                    var monthLimit = new DocumentMonthLimit();
+                    monthLimit.setMonth(entry.getKey().toString());
+                    monthLimit.setQuantity(entry.getValue());
+                    return monthLimit;
+                })
+                .sorted(Comparator.comparing(doc -> Month.valueOf(doc.getMonth())))
                 .collect(Collectors.toList());
     }
 }
