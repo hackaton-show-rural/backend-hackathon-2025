@@ -1,6 +1,7 @@
 package com.show_rural.hackathon.service;
 
 import com.show_rural.hackathon.domain.Document;
+import com.show_rural.hackathon.domain.DocumentStatus;
 import com.show_rural.hackathon.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,8 +9,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAmount;
 import java.util.List;
+
+import static com.show_rural.hackathon.util.EmailUtil.EXPIRATION_MESSAGE;
 
 @Service
 @Slf4j
@@ -21,66 +26,34 @@ public class NextToDueDateDocumentProcessor {
     @Scheduled(initialDelay = 0, fixedDelay = 10000)
     @Transactional
     public void checkDocumentsExpiration() {
+        setRegularStatus();
+        setWarningStatus();
+        setUrgentStatus();
+    }
+
+    private void setWarningStatus() {
+        Integer days = 240;
+        List<Document> documents = documentRepository.findNextExpirations(days);
+
+        for (var document : documents) {
+            document.setStatus(DocumentStatus.WARNING);
+        }
+    }
+
+    private void setUrgentStatus() {
         Integer daysToNotify = 120;
         List<Document> documents = documentRepository.findNextExpirations(daysToNotify);
 
         for (var document : documents) {
+            document.setStatus(DocumentStatus.URGENT);
+
             if (document.getSentMail() != null && document.getSentMail()) {
                 continue;
             }
 
             String subject = "Alerta de Vencimento - Documento " + document.getProtocol();
 
-            String message = """
-                    <!DOCTYPE html>
-                    <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <style>
-                            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                            .header { background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 5px; }
-                            .content { padding: 20px; background-color: #ffffff; }
-                            .warning { color: #dc3545; font-weight: bold; }
-                            .info { margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 5px; }
-                            .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #6c757d; }
-                            .button { display: inline-block; padding: 10px 20px; background-color: #007bff; color: #ffffff; 
-                                     text-decoration: none; border-radius: 5px; margin-top: 20px; }
-                        </style>
-                    </head>
-                    <body>
-                        <div class="container">
-                            <div class="header">
-                                <h2>Alerta de Vencimento de Documento</h2>
-                            </div>
-                            <div class="content">
-                                <p>Prezado(a),</p>
-                                
-                                <p>Identificamos que um documento importante está próximo da data de vencimento:</p>
-                                
-                                <div class="info">
-                                    <p><strong>Protocolo:</strong> %s</p>
-                                    <p><strong>Nome:</strong> %s</p>
-                                    <p><strong>CNPJ:</strong> %s</p>
-                                    <p><strong>Número:</strong> %s</p>
-                                    <p class="warning"><strong>Data de Vencimento:</strong> %s</p>
-                                </div>
-                                
-                                <p>Por favor, tome as providências necessárias para renovação do documento antes do vencimento.</p>
-                                
-                                <a href="%s" class="button" style="color:white">Visualizar Documento</a>
-                                
-                                <p>Se precisar de ajuda, entre em contato com nossa equipe de suporte.</p>
-                                
-                                <p>Atenciosamente,<br>Equipe de Gestão de Documentos</p>
-                            </div>
-                            <div class="footer">
-                                <p>Este é um e-mail automático, por favor não responda.</p>
-                            </div>
-                        </div>
-                    </body>
-                    </html>
-                    """.formatted(
+            String message = EXPIRATION_MESSAGE.formatted(
                     document.getProtocol(),
                     document.getIdentifier().getName(),
                     document.getCnpj(),
@@ -96,6 +69,13 @@ public class NextToDueDateDocumentProcessor {
             } catch (Exception e) {
                 log.error("Erro ao enviar email de alerta para documento: {}", document.getProtocol(), e);
             }
+        }
+    }
+
+    private void setRegularStatus() {
+        List<Document> documents = documentRepository.findAll();
+        for (var document : documents) {
+            document.setStatus(DocumentStatus.REGULAR);
         }
     }
 }

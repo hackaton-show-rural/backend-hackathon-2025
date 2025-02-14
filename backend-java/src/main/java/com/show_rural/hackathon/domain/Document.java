@@ -19,6 +19,7 @@ public class Document {
     private String protocol;
     private String number;
     private LocalDate limitDate;
+    private DocumentStatus status;
 
     @OneToOne(cascade = CascadeType.ALL)
     private DocumentIdentifier identifier;
@@ -30,6 +31,6 @@ public class Document {
     @Column(columnDefinition = "TEXT")
     private String documentUrl;
 
-    @Column(nullable = false, columnDefinition = "boolean default false")
+    @Column(columnDefinition = "boolean default false")
     private Boolean sentMail = false;
 }
