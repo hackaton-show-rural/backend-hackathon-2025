@@ -110,8 +110,7 @@ public class DocumentExtractor {
         String conditionants = "CONDICIONANTES";
         int startIndex = content.indexOf(conditionants) + conditionants.length();
 
-        Pattern conditionPattern =
-                Pattern.compile("(\\d+)\\.\\s+(\\D[^\\n]*(?:\\n(?!\\d+\\.)[^\\n]*)*)", Pattern.MULTILINE);
+        Pattern conditionPattern = Pattern.compile("(\\d+)\\.\\s+(\\D[^\\n]*(?:\\n(?!\\d+\\.)[^\\n]*)*?)(?=\\s*Assinatura do Representante|$)", Pattern.MULTILINE);
         Matcher matcher = conditionPattern.matcher(content.substring(startIndex));
 
         while (matcher.find()) {
