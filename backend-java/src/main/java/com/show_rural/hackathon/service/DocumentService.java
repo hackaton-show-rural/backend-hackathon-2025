@@ -5,6 +5,7 @@ import com.show_rural.hackathon.controller.dto.DocumentsCityQuantity;
 import com.show_rural.hackathon.controller.dto.DocumentsStatusQuantity;
 import com.show_rural.hackathon.controller.dto.PageParams;
 import com.show_rural.hackathon.domain.Document;
+import com.show_rural.hackathon.domain.DocumentStatus;
 import com.show_rural.hackathon.repository.DocumentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,16 +40,33 @@ public class DocumentService {
         String url = bucketService.upload(file);
         Document document = documentExtractor.processFile(file);
 
-        document.setDocumentUrl(url);
-        return documentRepository.save(document);
+        return save(document, url);
     }
 
     public void upload(File file) {
         String url = bucketService.upload(file);
         Document document = documentExtractor.processFile(file);
 
+        save(document, url);
+    }
+
+    private Document save(Document document, String url) {
         document.setDocumentUrl(url);
-        documentRepository.save(document);
+
+        if (limitDateIsAfter(document, 120)) {
+            document.setStatus(DocumentStatus.URGENT);
+        } else if (limitDateIsAfter(document, 240)) {
+            document.setStatus(DocumentStatus.WARNING);
+        } else {
+            document.setStatus(DocumentStatus.REGULAR);
+        }
+
+        return documentRepository.save(document);
+    }
+
+    private boolean limitDateIsAfter(Document document, int days) {
+        return document.getLimitDate().isBefore(LocalDate.now().plusDays(days)) ||
+                document.getLimitDate().isEqual(LocalDate.now().plusDays(days));
     }
 
     public Page<Document> list(PageParams params, DocumentFilters filters) {

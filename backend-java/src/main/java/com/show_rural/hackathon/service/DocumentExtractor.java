@@ -88,10 +88,11 @@ public class DocumentExtractor {
 
         DocumentIdentifier identifier = new DocumentIdentifier();
 
-        Pattern namePattern = Pattern.compile("\\d{2}\\.\\d{2}\\*\\.\\*\\*\\*/\\*\\*\\*\\*-\\*\\*\\s+(.*?)\\s*\\n");
+        Pattern namePattern = Pattern.compile("1\\.\\s*IDENTIFICAÇÃO\\s*DO\\s*EMPREENDEDOR\\s*\\n(.*?)\\s*\\n");
         Matcher nameMatcher = namePattern.matcher(content);
         if (nameMatcher.find()) {
             String name = nameMatcher.group(1).trim();
+            name = name.substring(name.indexOf("-**") + 3);
             identifier.setName(name);
         }
 
@@ -106,7 +107,7 @@ public class DocumentExtractor {
         document.setIdentifier(identifier);
 
         List<String> conditions = new ArrayList<>();
-        String conditionants = "4. CONDICIONANTES";
+        String conditionants = "CONDICIONANTES";
         int startIndex = content.indexOf(conditionants) + conditionants.length();
 
         Pattern conditionPattern =

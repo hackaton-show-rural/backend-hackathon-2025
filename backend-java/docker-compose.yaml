@@ -29,8 +29,6 @@ services:
       - POSTGRES_DB=docdb
       - POSTGRES_USER=docuser
       - POSTGRES_PASSWORD=docpass
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
     networks:
       - app-network
 
@@ -43,8 +41,6 @@ services:
       - MINIO_ROOT_USER=minio
       - MINIO_ROOT_PASSWORD=minio123
     command: server --console-address ":9001" /data
-    volumes:
-      - minio-data:/data
     networks:
       - app-network
     healthcheck:
@@ -76,6 +72,4 @@ networks:
     driver: bridge
 
 volumes:
-  postgres-data:
-  minio-data:
   java-data:
